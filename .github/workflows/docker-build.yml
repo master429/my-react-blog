@@ -1,0 +1,38 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 设置 Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3. 构建 Docker 镜像
+      - name: Build Docker image
+        run: |
+          docker build -t my-react-blog:latest .
+
+      # 4. 测试镜像
+      - name: Test Docker image
+        run: |
+          docker run -d -p 3000:80 --name test-blog my-react-blog:latest
+          sleep 5
+          curl -f http://localhost:3000 || exit 1
+          docker stop test-blog
+          docker rm test-blog
+
+      # 5. 显示成功消息
+      - name: Success
+        run: echo "✅ Docker 镜像构建和测试成功！"
